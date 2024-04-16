@@ -21,8 +21,6 @@ int main(void)
 		t_error("vmfill failed\n");
 		return 1;
 	}
-	errno = 0;
-	T(t_setrlim(RLIMIT_DATA, 0));
 
 	// malloc should fail here
 	errno = 0;
@@ -32,8 +30,8 @@ int main(void)
 	else if (errno != ENOMEM)
 		t_error("malloc did not fail with ENOMEM, got %s\n", strerror(errno));
 
-	// make some space available for mmap
-	T(munmap((char*)p+65536, 65536));
+	// make space available for mmap, but ensure it's not contiguous with brk
+	T(munmap((char*)p+65536, n-65536));
 
 	// malloc should succeed now
 	q = malloc(10000);
