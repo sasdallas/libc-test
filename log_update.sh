@@ -1,0 +1,1 @@
+echo $1 >> compile_log.txt

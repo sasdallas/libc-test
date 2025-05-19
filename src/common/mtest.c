@@ -111,7 +111,8 @@ char *estr(int f)
 {
 	static char buf[256];
 	char *p = buf;
-	int i, all = 0;
+	int all = 0;
+	unsigned int i = 0;
 
 	for (i = 0; i < length(eflags); i++)
 		if (f & eflags[i].flag) {

@@ -1,11 +1,15 @@
+#ifdef SUPPORTS_MMAP
+
 #include <stdint.h>
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
 #include "test.h"
+
 #ifndef PAGE_SIZE
-	#define PAGE_SIZE sysconf(_SC_PAGE_SIZE)
+	// #define PAGE_SIZE sysconf(_SC_PAGE_SIZE)
+	#define PAGE_SIZE 4096
 #endif
 #ifndef MAP_ANONYMOUS
 	#define MAP_ANONYMOUS 0
@@ -57,3 +61,33 @@ int t_vmfill(void **p, size_t *n, int len)
 	}
 	return i;
 }
+
+#else
+
+/* Use backup sbrk-style implementation */
+
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+#define DEFAULT_VMFILL_SIZE		8192
+
+// Terrible clone
+int t_vmfill(void **p, size_t *n, int len) {
+	int i;
+	for (i = 0; i < len; i++) {
+		// Unfortunately there is no good way to determine max brk() size
+		// from sbrk()
+		void *q = sbrk(DEFAULT_VMFILL_SIZE);
+		if (q == (void*)-1) {
+			break;
+		}
+
+		p[i] = q;
+		n[i] = DEFAULT_VMFILL_SIZE;
+	}
+
+	return i;
+}
+
+#endif

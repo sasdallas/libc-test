@@ -1,154 +1,67 @@
-B:=src
-SRCS:=$(sort $(wildcard src/*/*.c))
-OBJS:=$(SRCS:src/%.c=$(B)/%.o)
-LOBJS:=$(SRCS:src/%.c=$(B)/%.lo)
-DIRS:=$(patsubst src/%/,%,$(sort $(dir $(SRCS))))
-BDIRS:=$(DIRS:%=$(B)/%)
-NAMES:=$(SRCS:src/%.c=%)
-CFLAGS:=-I$(B)/common -Isrc/common
-LDLIBS:=$(B)/common/libtest.a
-AR = $(CROSS_COMPILE)ar
-RANLIB = $(CROSS_COMPILE)ranlib
-RUN_TEST = $(RUN_WRAP) $(B)/common/runtest.exe -w '$(RUN_WRAP)'
+include ./make.config
+include ./features.config
 
-all:
-%.mk:
-# turn off evil implicit rules
-.SUFFIXES:
-%: %.o
-%: %.c
-%: %.cc
-%: %.C
-%: %.cpp
-%: %.p
-%: %.f
-%: %.F
-%: %.r
-%: %.s
-%: %.S
-%: %.mod
-%: %.sh
-%: %,v
-%: RCS/%,v
-%: RCS/%
-%: s.%
-%: SCCS/s.%
+SRC_DIR = src
+OBJ_DIR = obj
+OBJ_DIR_REQUIRED = obj/required
+OBJ_DIR_API = obj/api
 
-config.mak:
-	cp config.mak.def $@
--include config.mak
+API_TESTS = $(SRC_DIR)/api
 
-define default_template
-$(1).BINS_TEMPL:=bin.exe bin-static.exe
-$(1).NAMES:=$$(filter $(1)/%,$$(NAMES))
-$(1).OBJS:=$$($(1).NAMES:%=$(B)/%.o)
-endef
-$(foreach d,$(DIRS),$(eval $(call default_template,$(d))))
-common.BINS_TEMPL:=
-api.BINS_TEMPL:=
-math.BINS_TEMPL:=bin.exe
+TEST_DIRS = $(SRC_DIR)/functional $(SRC_DIR)/math $(SRC_DIR)/regression
+TEST_OUTPUT_DIRS = $(patsubst $(SRC_DIR)%, $(OBJ_DIR)%, $(TEST_DIRS))
 
-define template
-D:=$$(patsubst %/,%,$$(dir $(1)))
-N:=$(1)
-$(1).BINS := $$($$(D).BINS_TEMPL:bin%=$(B)/$(1)%)
--include src/$(1).mk
-#$$(warning D $$(D) N $$(N) B $$($(1).BINS))
-$(B)/$(1).exe $(B)/$(1)-static.exe: $$($(1).OBJS)
-$(B)/$(1).so: $$($(1).LOBJS)
-# make sure dynamic and static binaries are not run parallel (matters for some tests eg ipc)
-$(B)/$(1)-static.err: $(B)/$(1).err
-endef
-$(foreach n,$(NAMES),$(eval $(call template,$(n))))
+REQUIRED_SRC = $(SRC_DIR)/common
+TEST_BACKUP = $(SRC_DIR)/special/test-backup.c
 
-BINS:=$(foreach n,$(NAMES),$($(n).BINS)) $(B)/api/main.exe
-LIBS:=$(foreach n,$(NAMES),$($(n).LIBS)) $(B)/common/runtest.exe
-ERRS:=$(BINS:%.exe=%.err)
+# Construct object lists
+TEST_C_SOURCES = $(shell find $(TEST_DIRS) -maxdepth 1 -name "*.c" -type f)
+TEST_C_OBJECTS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%, $(TEST_C_SOURCES))
 
-debug:
-	@echo NAMES $(NAMES)
-	@echo BINS $(BINS)
-	@echo LIBS $(LIBS)
-	@echo ERRS $(ERRS)
-	@echo DIRS $(DIRS)
+REQUIRED_C_SOURCES = $(wildcard $(REQUIRED_SRC)/*.c)
+REQUIRED_C_OBJECTS = $(REQUIRED_C_SOURCES:$(REQUIRED_SRC)%.c=$(OBJ_DIR_REQUIRED)%.o)
 
-define target_template
-$(1).ERRS:=$$(filter $(B)/$(1)/%,$$(ERRS))
-$(B)/$(1)/all: $(B)/$(1)/REPORT
-$(B)/$(1)/run: $(B)/$(1)/cleanerr $(B)/$(1)/REPORT
-$(B)/$(1)/cleanerr:
-	rm -f $$(filter-out $(B)/$(1)/%-static.err,$$($(1).ERRS))
-$(B)/$(1)/clean:
-	rm -f $$(filter $(B)/$(1)/%,$$(OBJS) $$(LOBJS) $$(BINS) $$(LIBS)) $(B)/$(1)/*.err
-$(B)/$(1)/REPORT: $$($(1).ERRS)
-	cat $(B)/$(1)/*.err >$$@
-run: $(B)/$(1)/run
-$(B)/REPORT: $(B)/$(1)/REPORT
-.PHONY: $(B)/$(1)/all $(B)/$(1)/clean
-endef
-$(foreach d,$(DIRS),$(eval $(call target_template,$(d))))
+API_C_SOURCES = $(wildcard $(API_TESTS)/*.c)
+API_C_OBJECTS = $(API_C_SOURCES:$(API_TESTS)%.c=$(OBJ_DIR_API)%.o)
 
-$(B)/common/libtest.a: $(common.OBJS)
-	rm -f $@
-	$(AR) rc $@ $^
-	$(RANLIB) $@
+MAKE_DIRECTORIES:
+	@printf "[MAKE DIRECTORIES] Make directories\n"
+	-@mkdir -pv $(OBJ_DIR)
+	-@mkdir -pv $(OBJ_DIR_REQUIRED)
+	-@mkdir -pv $(TEST_OUTPUT_DIRS)
+	-rm compile_log.txt
 
-$(B)/common/all: $(B)/common/runtest.exe
+$(OBJ_DIR_REQUIRED)/%.o: $(REQUIRED_SRC)/%.c
+	@printf "[COMPILE:REQUIRED] $<\n"
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(ERRS): $(B)/common/runtest.exe | $(BDIRS)
-$(BINS) $(LIBS): $(B)/common/libtest.a
-$(OBJS): src/common/test.h | $(BDIRS)
-$(BDIRS):
-	mkdir -p $@
+$(OBJ_DIR)/libtest.a: $(REQUIRED_C_OBJECTS)
+	@printf "[LD:REQUIRED     ] $@\n"
+	@$(AR) rcs $@ $(REQUIRED_C_OBJECTS)
 
-$(B)/common/options.h: src/common/options.h.in
-	$(CC) -E - <$< | awk ' \
-		/optiongroups_unistd_end/ {s=1; next} \
-		!s || !NF || /^#/ {next} \
-		!a {a=$$1; if(NF==1)next} \
-		{print "#define "a" "$$NF; a=""}' >$@.tmp
-	mv $@.tmp $@
+$(OBJ_DIR_API)/%.o: $(API_TESTS)/%.c
+	@printf "[COMPILE:API     ] $<\n"
+	@if $(CC) $(CFLAGS) -c $< -o $@ >> compile_log.txt; then \
+		./log_update.sh "[COMPILE:SUCCESS] $<" \
+	else \
+		./log_update.sh "[COMPILE:FAILURE] $<" \
+	fi
 
-$(B)/common/mtest.o: src/common/mtest.h
-$(math.OBJS): src/common/mtest.h
 
-$(B)/api/main.exe: $(api.OBJS)
-api/main.OBJS:=$(api.OBJS)
-$(api.OBJS):$(B)/common/options.h
-$(api.OBJS):CFLAGS+=-pedantic-errors -Werror -Wno-unused -D_XOPEN_SOURCE=700
+$(OBJ_DIR)/%: $(SRC_DIR)/%.c Makefile
+	@printf "[COMPILE:TEST    ] $@\n"	
+	@if $(CC) $(CFLAGS) $(LDFLAGS) $< -o $@ $(LIBS) >> compile_log.txt; then \
+		./log_update.sh "[COMPILE:SUCCESS] $<"; \
+	else \
+		./log_update.sh "[COMPILE:FAILURE] $<"; \
+	fi
 
-all run: $(B)/REPORT
-	grep FAIL $< || echo PASS
+	@if [ ! -f "$@" ]; then \
+		$(CC) $(CFLAGS) $(LDFLAGS) $(TEST_BACKUP) -o $@ $(LIBS) -DTEST_FILE_NAME="$<"; \
+	fi
+
+.PHONY: all
+all: MAKE_DIRECTORIES $(OBJ_DIR)/libtest.a $(TEST_C_OBJECTS)
+
 clean:
-	rm -f $(OBJS) $(BINS) $(LIBS) $(B)/common/libtest.a $(B)/common/runtest.exe $(B)/common/options.h $(B)/*/*.err
-cleanall: clean
-	rm -f $(B)/REPORT $(B)/*/REPORT
-$(B)/REPORT:
-	cat $^ >$@
-
-$(B)/%.o:: src/%.c
-	$(CC) $(CFLAGS) $($*.CFLAGS) -c -o $@ $< 2>$@.err || echo BUILDERROR $@; cat $@.err
-$(B)/%.s:: src/%.c
-	$(CC) $(CFLAGS) $($*.CFLAGS) -S -o $@ $< || echo BUILDERROR $@; cat $@.err
-$(B)/%.lo:: src/%.c
-	$(CC) $(CFLAGS) $($*.CFLAGS) -fPIC -DSHARED -c -o $@ $< 2>$@.err || echo BUILDERROR $@; cat $@.err
-$(B)/%.so: $(B)/%.lo
-	$(CC) -shared $(LDFLAGS) $($*.so.LDFLAGS) -o $@ $(sort $< $($*.so.LOBJS)) $(LDLIBS) $($*.so.LDLIBS) 2>$@.err || echo BUILDERROR $@; cat $@.err
-$(B)/%-static.exe: $(B)/%.o
-	$(CC) -static $(LDFLAGS) $($*-static.LDFLAGS) -o $@ $(sort $< $($*-static.OBJS)) $(LDLIBS) $($*-static.LDLIBS) 2>$@.ld.err || echo BUILDERROR $@; cat $@.ld.err
-$(B)/%.exe: $(B)/%.o
-	$(CC) $(LDFLAGS) $($*.LDFLAGS) -o $@ $(sort $< $($*.OBJS)) $(LDLIBS) $($*.LDLIBS) 2>$@.ld.err || echo BUILDERROR $@; cat $@.ld.err
-
-%.o.err: %.o
-	touch $@
-%.lo.err: %.lo
-	touch $@
-%.so.err: %.so
-	touch $@
-%.ld.err: %.exe
-	touch $@
-%.err: %.exe
-	$(RUN_TEST) $< >$@ || true
-
-.PHONY: all run clean cleanall
-
+	-rm -rf $(OBJ_DIR)

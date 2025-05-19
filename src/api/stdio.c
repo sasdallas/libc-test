@@ -40,11 +40,11 @@ C(EOF)
 {int(*p)(FILE*) = fflush;}
 {int(*p)(FILE*) = fgetc;}
 {int(*p)(FILE*restrict,fpos_t*restrict) = fgetpos;}
-{char*(*p)(char*restrict,int,FILE*restrict) = fgets;}
+{char*(*)(char*restrict,int,FILE*restrict) = fgets;}
 {int(*p)(FILE*) = fileno;}
 {void(*p)(FILE*) = flockfile;}
 {FILE*(*p)(void*restrict,size_t,const char*restrict) = fmemopen;}
-{FILE*(*p)(const char*restrict,const char*restrict) = fopen;}
+{FILE*(*p)(const char*restrictp,const char*restrict) = fopen;}
 {int(*p)(FILE*restrict,const char*restrict,...) = fprintf;}
 {int(*p)(int,FILE*) = fputc;}
 {int(*p)(const char*restrict,FILE*restrict) = fputs;}

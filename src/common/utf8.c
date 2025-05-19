@@ -1,7 +1,9 @@
+#ifdef SETLOCALE_SUPPORTED
 #include <locale.h>
 #include <string.h>
 #include <langinfo.h>
 #include "test.h"
+
 
 int t_setutf8()
 {
@@ -19,3 +21,13 @@ int t_setutf8()
 
 	return 0;
 }
+
+#else
+
+#include "test.h"
+
+int t_setutf8() {
+	return t_error("cannot set UTF-8 locale for test (setlocale unsupported)\n");
+}
+
+#endif

@@ -5,3 +5,5 @@
 *.exe
 config.mak
 REPORT
+
+obj/

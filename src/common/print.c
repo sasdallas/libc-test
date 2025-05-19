@@ -17,7 +17,7 @@ int t_printf(const char *s, ...)
 	va_end(ap);
 	if (n < 0)
 		n = 0;
-	else if (n >= sizeof buf) {
+	else if ((size_t)n >= sizeof buf) {
 		n = sizeof buf;
 		buf[n - 1] = '\n';
 		buf[n - 2] = '.';

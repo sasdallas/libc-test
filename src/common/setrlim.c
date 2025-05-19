@@ -1,3 +1,5 @@
+#ifdef RLIM_SUPPORTED
+
 #include <string.h>
 #include <errno.h>
 #include <sys/resource.h>
@@ -24,3 +26,10 @@ int t_setrlim(int r, long lim)
 	return 0;
 }
 
+#else
+
+int t_setrlim(int r, long lim) {
+	return 0;
+}
+
+#endif
