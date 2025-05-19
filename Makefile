@@ -13,6 +13,7 @@ TEST_OUTPUT_DIRS = $(patsubst $(SRC_DIR)%, $(OBJ_DIR)%, $(TEST_DIRS))
 
 REQUIRED_SRC = $(SRC_DIR)/common
 TEST_BACKUP = $(SRC_DIR)/special/test-backup.c
+TEST_RUNNER = $(SRC_DIR)/special/test-runner.c
 
 # Construct object lists
 TEST_C_SOURCES = $(shell find $(TEST_DIRS) -maxdepth 1 -name "*.c" -type f)
@@ -60,8 +61,13 @@ $(OBJ_DIR)/%: $(SRC_DIR)/%.c Makefile
 		$(CC) $(CFLAGS) $(LDFLAGS) $(TEST_BACKUP) -o $@ $(LIBS) -DTEST_FILE_NAME="$<"; \
 	fi
 
+$(OBJ_DIR)/test: $(TEST_RUNNER)
+	@printf "[COMPILE:RUNNER  ] $@\n"
+	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@ $(LIBS)
+
+
 .PHONY: all
-all: MAKE_DIRECTORIES $(OBJ_DIR)/libtest.a $(TEST_C_OBJECTS)
+all: MAKE_DIRECTORIES $(OBJ_DIR)/libtest.a $(TEST_C_OBJECTS) $(OBJ_DIR)/test
 
 clean:
 	-rm -rf $(OBJ_DIR)

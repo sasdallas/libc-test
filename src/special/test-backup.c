@@ -19,6 +19,6 @@
 #define STRSTR(x) STR(x)
 
 int main(int argc, char *argv[]) {
-    t_error("Error running test \"%s\" (compilation failed during test suite build time)\n", STR(TEST_FILE_NAME));
+    t_error("Error running test \"%s\" (compilation failed during test suite build time)\n", STRSTR(TEST_FILE_NAME));
     return 1;
 }

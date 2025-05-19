@@ -20,3 +20,8 @@ The test program is built in obj/test_program. You must copy it AND all the test
 on your OS drive.
 
 Once back in your OS, execute the program as "./test_program <test directory>"
+
+III. REQUIRED SYSTEM CALLS
+===============================
+
+TBD
