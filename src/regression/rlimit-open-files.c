@@ -1,4 +1,4 @@
-#ifdef RLIM_SUPPORTED
+#ifdef SUPPORTS_RLIM
 
 // rlimit should be able to set file limits
 #include <stdlib.h>

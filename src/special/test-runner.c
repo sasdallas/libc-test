@@ -27,7 +27,7 @@ static int total_tests = 0;
 static int failed_tests = 0;
 
 /* ugly */
-#define EXECUTE_TEST(testname) tmp = strcat(dir, "/" testname); \
+#define EXECUTE_TEST(testname) snprintf(tmp, 512, "%s/%s", dir, testname); \
                                 total_tests++; \
                                 if (run_test(tmp, testname)) failed_tests++;
 
@@ -78,8 +78,76 @@ int run_test(char *test_path, char *test_name) {
 
 
 void run_functional_tests() {
-    char *tmp;
+    char tmp[512];
     EXECUTE_TEST("argv");
+    EXECUTE_TEST("basename");
+    EXECUTE_TEST("clocale_mbfuncs");
+    EXECUTE_TEST("clock_gettime");
+    EXECUTE_TEST("crypt");
+    EXECUTE_TEST("dirname");
+    EXECUTE_TEST("dlopen_dso");
+    EXECUTE_TEST("dlopen");
+    EXECUTE_TEST("env");
+    EXECUTE_TEST("fcntl");
+    EXECUTE_TEST("fdopen");
+    EXECUTE_TEST("fnmatch");
+    EXECUTE_TEST("fscanf");
+    EXECUTE_TEST("fwscanf");
+    EXECUTE_TEST("iconv_open");
+    EXECUTE_TEST("inet_pton");
+    EXECUTE_TEST("ipc_msg");
+    EXECUTE_TEST("ipc_sem");
+    EXECUTE_TEST("ipc_shm");
+    EXECUTE_TEST("mbc");
+    EXECUTE_TEST("memstream");
+    EXECUTE_TEST("mntent");
+    EXECUTE_TEST("popen");
+    EXECUTE_TEST("pthread_cancel-points");
+    EXECUTE_TEST("pthread_cancel");
+    EXECUTE_TEST("pthread_cond");
+    EXECUTE_TEST("pthread_mutex_pi");
+    EXECUTE_TEST("pthread_mutex");
+    EXECUTE_TEST("pthread_robust");
+    EXECUTE_TEST("pthread_tsd");
+    EXECUTE_TEST("qsort");
+    EXECUTE_TEST("random");
+    EXECUTE_TEST("search_hsearch");
+    EXECUTE_TEST("search_insque");
+    EXECUTE_TEST("search_lsearch");
+    EXECUTE_TEST("search_tsearch");
+    EXECUTE_TEST("sem_init");
+    EXECUTE_TEST("sem_open");
+    EXECUTE_TEST("setjmp");
+    EXECUTE_TEST("snprintf");
+    EXECUTE_TEST("socket");
+    EXECUTE_TEST("spawn");
+    EXECUTE_TEST("sscanf_long");
+    EXECUTE_TEST("sscanf");
+    EXECUTE_TEST("stat");
+    EXECUTE_TEST("strftime");
+    EXECUTE_TEST("string_memcpy");
+    EXECUTE_TEST("string_memmem");
+    EXECUTE_TEST("string_memset");
+    EXECUTE_TEST("string_strchr");
+    EXECUTE_TEST("string_strcspn");
+    EXECUTE_TEST("string_strstr");
+    EXECUTE_TEST("string");
+    EXECUTE_TEST("strptime");
+    EXECUTE_TEST("strtod_long");
+    EXECUTE_TEST("strtod_simple");
+    EXECUTE_TEST("strtod");
+    EXECUTE_TEST("strtof");
+    EXECUTE_TEST("strtol");
+    EXECUTE_TEST("strtold");
+    EXECUTE_TEST("swprintf");
+    EXECUTE_TEST("tgmath");
+    EXECUTE_TEST("time");
+    EXECUTE_TEST("udiv");
+    EXECUTE_TEST("ungetc");
+    EXECUTE_TEST("utime");
+    EXECUTE_TEST("vfork");
+    EXECUTE_TEST("wcsstr");
+    EXECUTE_TEST("wcstol");
 }
 
 int main(int argc, char *argv[]) {
@@ -108,6 +176,11 @@ int main(int argc, char *argv[]) {
         }
     }
 
+
     run_functional_tests();
+
+    t_printf("[STATISTICS] Finished running all tests\n");
+    t_printf("[STATISTICS] Total %d tests - %d failed, %d succeeded\n", total_tests, failed_tests, (total_tests - failed_tests));
+
     return t_status;
 }

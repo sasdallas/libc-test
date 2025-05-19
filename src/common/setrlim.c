@@ -1,4 +1,4 @@
-#ifdef RLIM_SUPPORTED
+#ifdef SUPPORTS_RLIM
 
 #include <string.h>
 #include <errno.h>

@@ -2,7 +2,7 @@
 #include <string.h>
 #include <errno.h>
 
-#ifdef RLIM_SUPPORTED
+#ifdef SUPPORTS_RLIM
 #include <sys/resource.h>
 #endif
 
@@ -17,7 +17,7 @@ int t_memfill()
 		r = -1;
 	}
 
-#ifdef RLIM_SUPPORTED
+#ifdef SUPPORTS_RLIM
 	/* limit brk space */
 	if (t_setrlim(RLIMIT_DATA, 0) < 0)
 		r = -1;

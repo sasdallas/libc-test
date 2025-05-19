@@ -1,4 +1,4 @@
-#ifdef SETLOCALE_SUPPORTED
+#ifdef SUPPORTS_LOCALE
 #include <locale.h>
 #include <string.h>
 #include <langinfo.h>

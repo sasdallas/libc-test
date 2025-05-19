@@ -42,7 +42,7 @@ $(OBJ_DIR)/libtest.a: $(REQUIRED_C_OBJECTS)
 
 $(OBJ_DIR_API)/%.o: $(API_TESTS)/%.c
 	@printf "[COMPILE:API     ] $<\n"
-	@if $(CC) $(CFLAGS) -c $< -o $@ >> compile_log.txt; then \
+	@if $(CC) $(CFLAGS) -c $< -o $@ >> compile_log.txt 2>&1; then \
 		./log_update.sh "[COMPILE:SUCCESS] $<" \
 	else \
 		./log_update.sh "[COMPILE:FAILURE] $<" \
@@ -51,7 +51,7 @@ $(OBJ_DIR_API)/%.o: $(API_TESTS)/%.c
 
 $(OBJ_DIR)/%: $(SRC_DIR)/%.c Makefile
 	@printf "[COMPILE:TEST    ] $@\n"	
-	@if $(CC) $(CFLAGS) $(LDFLAGS) $< -o $@ $(LIBS) >> compile_log.txt; then \
+	@if $(CC) $(CFLAGS) $(LDFLAGS) $< -o $@ $(LIBS) >> compile_log.txt 2>&1; then \
 		./log_update.sh "[COMPILE:SUCCESS] $<"; \
 	else \
 		./log_update.sh "[COMPILE:FAILURE] $<"; \
