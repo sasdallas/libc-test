@@ -4,3 +4,19 @@ musl libc testsuite for OS projects
 This is a lot like sortie's OS tester but for general libc things.
 
 This version of the musl testsuite is fitted more closely to OSdevers and supports other libcs rather than just musl's
+
+I. HOW TO USE
+======================
+
+First, configure your OS GCC in make.config, then select your OS features in features.config
+
+Running make all will produce "compile_log.txt" - this is a set of all the tests that managed to compile and all the tests that failed to compile.
+Just because a test compiled does not mean that it worked. You must run the test program to see if it will work.
+
+II. RUNNING THE TEST PROGRAM
+===============================
+
+The test program is built in obj/test_program. You must copy it AND all the tests (from obj/functional, obj/math, and obj/regresssion) into a tests folder
+on your OS drive.
+
+Once back in your OS, execute the program as "./test_program <test directory>"
