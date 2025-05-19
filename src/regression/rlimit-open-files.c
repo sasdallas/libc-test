@@ -1,3 +1,5 @@
+#ifdef RLIM_SUPPORTED
+
 // rlimit should be able to set file limits
 #include <stdlib.h>
 #include <string.h>
@@ -31,3 +33,14 @@ int main(void)
 
 	return t_status;
 }
+
+#else
+
+#include "test.h"
+
+int main(void) {
+	t_error("rlim not supported\n");
+	return t_status;
+}
+
+#endif
