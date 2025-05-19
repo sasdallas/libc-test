@@ -61,7 +61,7 @@ int run_test(char *test_path, char *test_name) {
         if (WIFEXITED(status)) {
             if (WEXITSTATUS(status) == EXIT_SUCCESS) {
                 t_printf("[SUCCESS:%s] Process exited with status 0\n", test_name);
-                return t_status;
+                return 0;
             }
             t_printf("[FAIL:%s] Process exited with status %d\n", test_name, WEXITSTATUS(status));
         } else if (WIFSIGNALED(status)) {

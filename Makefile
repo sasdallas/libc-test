@@ -29,6 +29,7 @@ MAKE_DIRECTORIES:
 	@printf "[MAKE DIRECTORIES] Make directories\n"
 	-@mkdir -pv $(OBJ_DIR)
 	-@mkdir -pv $(OBJ_DIR_REQUIRED)
+	-@mkdir -pv $(OBJ_DIR_API)
 	-@mkdir -pv $(TEST_OUTPUT_DIRS)
 	-rm compile_log.txt
 
@@ -43,9 +44,9 @@ $(OBJ_DIR)/libtest.a: $(REQUIRED_C_OBJECTS)
 $(OBJ_DIR_API)/%.o: $(API_TESTS)/%.c
 	@printf "[COMPILE:API     ] $<\n"
 	@if $(CC) $(CFLAGS) -c $< -o $@ >> compile_log.txt 2>&1; then \
-		./log_update.sh "[COMPILE:SUCCESS] $<" \
+		./log_update.sh "[COMPILE:SUCCESS] $<"; \
 	else \
-		./log_update.sh "[COMPILE:FAILURE] $<" \
+		./log_update.sh "[COMPILE:FAILURE] $<"; \
 	fi
 
 
@@ -67,7 +68,7 @@ $(OBJ_DIR)/test: $(TEST_RUNNER)
 
 
 .PHONY: all
-all: MAKE_DIRECTORIES $(OBJ_DIR)/libtest.a $(TEST_C_OBJECTS) $(OBJ_DIR)/test
+all: MAKE_DIRECTORIES $(OBJ_DIR)/libtest.a $(API_C_OBJECTS) $(TEST_C_OBJECTS) $(OBJ_DIR)/test
 
 clean:
 	-rm -rf $(OBJ_DIR)
